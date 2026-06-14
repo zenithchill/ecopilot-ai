@@ -12,7 +12,13 @@ import type {
 } from '@/types';
 import { clamp } from './utils';
 
-/** Calculate CO₂ emissions for a single activity */
+/**
+ * Calculate CO₂ emissions for a single activity
+ * @param category - The category of the activity (e.g., 'transport', 'food')
+ * @param type - The specific type of activity (e.g., 'car_petrol')
+ * @param amount - The amount in the specified unit for that activity
+ * @returns The calculated CO₂ emissions in kilograms
+ */
 export function calculateActivityCarbon(category: ActivityCategory, type: string, amount: number): number {
   switch (category) {
     case 'transport': return amount * (TRANSPORT_EMISSIONS[type] ?? 0);
@@ -40,26 +46,43 @@ export function calculateActivityCarbon(category: ActivityCategory, type: string
   }
 }
 
-/** Calculate total daily carbon footprint */
+/**
+ * Calculate total daily carbon footprint from a list of activities
+ * @param activities - Array of activities for a single day
+ * @returns The total CO₂ emissions in kilograms
+ */
 export function calculateDailyFootprint(activities: Activity[]): number {
   return activities.reduce((total, act) => total + act.carbonKg, 0);
 }
 
-/** Aggregate daily logs into weekly totals */
+/**
+ * Aggregate daily logs into weekly totals for the last 7 days
+ * @param logs - Array of daily logs
+ * @returns The total CO₂ emissions over the last 7 days in kilograms
+ */
 export function calculateWeeklyTotal(logs: DailyLog[]): number {
   const d = new Date(); d.setDate(d.getDate() - 7);
   const cutoff = d.toISOString().split('T')[0];
   return logs.filter(l => l.date >= cutoff).reduce((t, l) => t + l.totalCarbonKg, 0);
 }
 
-/** Aggregate daily logs into monthly totals */
+/**
+ * Aggregate daily logs into monthly totals for the last 30 days
+ * @param logs - Array of daily logs
+ * @returns The total CO₂ emissions over the last 30 days in kilograms
+ */
 export function calculateMonthlyTotal(logs: DailyLog[]): number {
   const d = new Date(); d.setDate(d.getDate() - 30);
   const cutoff = d.toISOString().split('T')[0];
   return logs.filter(l => l.date >= cutoff).reduce((t, l) => t + l.totalCarbonKg, 0);
 }
 
-/** Calculate category breakdown from recent logs */
+/**
+ * Calculate category breakdown and trend analysis from recent logs
+ * @param logs - Array of daily logs
+ * @param days - Number of days to analyze (default: 30)
+ * @returns Array of category breakdowns with percentages and trends
+ */
 export function calculateCategoryBreakdown(logs: DailyLog[], days: number = 30): CategoryBreakdown[] {
   const cutoffDate = new Date(); cutoffDate.setDate(cutoffDate.getDate() - days);
   const cutoff = cutoffDate.toISOString().split('T')[0];
@@ -80,7 +103,12 @@ export function calculateCategoryBreakdown(logs: DailyLog[], days: number = 30):
   }).sort((a, b) => b.carbonKg - a.carbonKg);
 }
 
-/** Identify risk areas */
+/**
+ * Identify risk areas and potential savings based on category breakdown and user profile
+ * @param breakdown - The calculated category breakdown
+ * @param profile - The user's lifestyle profile
+ * @returns Array of identified risk areas with severity and potential savings
+ */
 export function identifyRiskAreas(breakdown: CategoryBreakdown[], profile: LifestyleProfile): RiskArea[] {
   const risks: RiskArea[] = [];
   for (const cat of breakdown) {
@@ -92,7 +120,11 @@ export function identifyRiskAreas(breakdown: CategoryBreakdown[], profile: Lifes
   return risks.sort((a, b) => ({ high: 0, medium: 1, low: 2 })[a.severity] - ({ high: 0, medium: 1, low: 2 })[b.severity]);
 }
 
-/** Estimate daily carbon from lifestyle profile (no activity logs) */
+/**
+ * Estimate daily carbon footprint purely from a lifestyle profile (fallback when no logs exist)
+ * @param profile - The user's lifestyle profile
+ * @returns Estimated daily CO₂ emissions in kilograms
+ */
 function estimateDailyFromProfile(profile: LifestyleProfile): number {
   let daily = 0;
   const tKey = profile.primaryTransport === 'car' ? `car_${profile.carType ?? 'petrol'}` : profile.primaryTransport === 'public_transit' ? 'bus' : profile.primaryTransport;
@@ -110,7 +142,13 @@ function estimateDailyFromProfile(profile: LifestyleProfile): number {
   return daily;
 }
 
-/** Calculate overall sustainability score (0–100) */
+/**
+ * Calculate overall sustainability score (0–100) and generate a comprehensive report
+ * @param logs - Array of daily logs
+ * @param profile - The user's lifestyle profile
+ * @param country - The user's country to compare against national averages
+ * @returns A comprehensive CarbonScore object
+ */
 export function calculateCarbonScore(logs: DailyLog[], profile: LifestyleProfile, country: string = 'world'): CarbonScore {
   const breakdown = calculateCategoryBreakdown(logs, 30);
   const monthlyTotal = calculateMonthlyTotal(logs);
@@ -132,7 +170,12 @@ export function calculateCarbonScore(logs: DailyLog[], profile: LifestyleProfile
   return { score, grade, dailyAverageKg: Math.round(dailyAverage * 100) / 100, weeklyTotalKg: Math.round(weeklyTotal * 100) / 100, monthlyTotalKg: Math.round(monthlyTotal * 100) / 100, yearlyProjectionKg: Math.round(yearlyProjection), nationalAverageKg: nationalAvg, comparisonPercent: Math.round(((nationalAvg - yearlyProjection) / nationalAvg) * 100), breakdown, riskAreas, improvementForecast: Math.min(100, Math.round(score + score * 0.08)) };
 }
 
-/** Get daily trend data for the last N days */
+/**
+ * Get daily trend data for the last N days, filling in gaps with zero
+ * @param logs - Array of daily logs
+ * @param days - Number of days to return (default: 30)
+ * @returns Array of objects containing date and total emissions
+ */
 export function getDailyTrend(logs: DailyLog[], days: number = 30): Array<{ date: string; total: number }> {
   const result: Array<{ date: string; total: number }> = [];
   const logMap = new Map(logs.map(l => [l.date, l.totalCarbonKg]));

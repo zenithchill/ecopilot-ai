@@ -3,7 +3,11 @@ import { UserProfile, DailyLog, CarbonScore } from '@/types';
 import { calculateCarbonScore } from './carbon-engine';
 
 // Initialize the Gemini API client
-// In a real app, ensure this key is only exposed on the server side
+// Ensure this is only executed on the server side
+if (typeof window !== 'undefined') {
+  console.warn('CRITICAL SECURITY WARNING: Gemini API initialized on the client side. This exposes your API key.');
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
 export const getGeminiModel = () => {

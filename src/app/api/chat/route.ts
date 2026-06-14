@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
 import { getGeminiModel, buildSystemPrompt } from '@/lib/gemini';
-import { chatRateLimiter, sanitizeString } from '@/lib/validators';
+import { chatRateLimiter, sanitizeString, sanitizeObject } from '@/lib/validators';
 import { calculateCarbonScore } from '@/lib/carbon-engine';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
 
 export async function POST(req: Request) {
   try {
@@ -22,16 +32,24 @@ export async function POST(req: Request) {
     }
 
     // 3. Parse and Validate Request
-    const body = await req.json();
+    
+    // Size check
+    const contentLength = req.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 1024 * 1024) { // 1MB limit
+      return NextResponse.json({ error: 'Payload too large.' }, { status: 413, headers: corsHeaders });
+    }
+
+    const rawBody = await req.json();
+    const body = sanitizeObject(rawBody);
     const { messages, profile, logs } = body;
 
     if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json({ error: 'Invalid messages format.' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid messages format.' }, { status: 400, headers: corsHeaders });
     }
 
     const latestMessage = messages[messages.length - 1];
     if (!latestMessage || latestMessage.role !== 'user') {
-      return NextResponse.json({ error: 'Last message must be from the user.' }, { status: 400 });
+      return NextResponse.json({ error: 'Last message must be from the user.' }, { status: 400, headers: corsHeaders });
     }
 
     const sanitizedQuery = sanitizeString(latestMessage.content, 1000);
@@ -42,7 +60,7 @@ export async function POST(req: Request) {
 
     // 5. Format History for Gemini
     // Gemini expects history in { role: 'user' | 'model', parts: [{ text: '...' }] } format
-    const history = messages.slice(0, -1).map((msg: any) => ({
+    const history = messages.slice(0, -1).map((msg: import('@/types').ChatMessage) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }));
@@ -67,13 +85,14 @@ export async function POST(req: Request) {
     const result = await chat.sendMessage(sanitizedQuery);
     const responseText = result.response.text();
 
-    return NextResponse.json({ content: responseText });
+    return NextResponse.json({ content: responseText }, { headers: corsHeaders });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Gemini API Error:', error);
+    const err = error as Error;
     return NextResponse.json(
-      { error: 'An error occurred while communicating with the AI. Please try again.' },
-      { status: 500 }
+      { error: 'An error occurred while communicating with the AI. Please try again.', details: err.message || 'Unknown error' },
+      { status: 500, headers: corsHeaders }
     );
   }
 }

@@ -126,7 +126,7 @@ export default function SettingsPage() {
               <select 
                 className="px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-surface-800 border border-slate-200 dark:border-slate-700 text-sm outline-none focus:border-eco-500"
                 value={profile.preferences.units}
-                onChange={(e) => updatePreferences({ units: e.target.value as any })}
+                onChange={(e) => updatePreferences({ units: e.target.value as 'metric' | 'imperial' })}
               >
                 <option value="metric">Metric</option>
                 <option value="imperial" disabled>Imperial (Soon)</option>

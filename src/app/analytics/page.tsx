@@ -160,7 +160,15 @@ export default function AnalyticsPage() {
   );
 }
 
-function StatCard({ title, value, unit, subtitle, icon }: any) {
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  unit: string;
+  subtitle: string;
+  icon: React.ReactNode;
+}
+
+function StatCard({ title, value, unit, subtitle, icon }: StatCardProps) {
   return (
     <div className="bg-white dark:bg-surface-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-5">
       <div className="flex justify-between items-start mb-4">

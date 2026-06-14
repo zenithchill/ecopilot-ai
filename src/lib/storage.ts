@@ -37,18 +37,30 @@ export function removeStorageItem(key: string): void {
 /** Clear all EcoPilot data */
 export function clearAllStorage(): void {
   if (typeof window === 'undefined') return;
-  const keys = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_PREFIX));
-  keys.forEach(k => localStorage.removeItem(k));
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_PREFIX)) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(k => localStorage.removeItem(k));
 }
 
 /** Export all data as JSON for download */
 export function exportAllData(): string {
   if (typeof window === 'undefined') return '{}';
   const data: Record<string, unknown> = {};
-  const keys = Object.keys(localStorage).filter(k => k.startsWith(STORAGE_PREFIX));
-  keys.forEach(k => {
-    try { data[k.replace(STORAGE_PREFIX, '')] = JSON.parse(localStorage.getItem(k) ?? ''); } catch { data[k] = localStorage.getItem(k); }
-  });
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith(STORAGE_PREFIX)) {
+      try { 
+        data[key.replace(STORAGE_PREFIX, '')] = JSON.parse(localStorage.getItem(key) ?? ''); 
+      } catch { 
+        data[key.replace(STORAGE_PREFIX, '')] = localStorage.getItem(key); 
+      }
+    }
+  }
   return JSON.stringify(data, null, 2);
 }
 

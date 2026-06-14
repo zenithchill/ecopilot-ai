@@ -30,7 +30,7 @@ export default function SimulatorPage() {
   const handleApplyChanges = () => {
     if (!confirm('Apply these simulated changes to your profile?')) return;
     
-    const updates: any = {};
+    const updates: Partial<import('@/types').LifestyleProfile> = {};
     scenarios.forEach(s => {
       if (s.category === 'transport' && s.label.includes('transit')) updates.primaryTransport = 'public_transit';
       if (s.category === 'transport' && s.label.includes('distance')) updates.dailyCommuteKm = s.newValue;

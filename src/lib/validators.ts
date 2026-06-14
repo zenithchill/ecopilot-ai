@@ -22,6 +22,29 @@ export function sanitizeString(input: string, maxLength: number = 1000): string 
 }
 
 /**
+ * Deep sanitize an object or array
+ */
+export function sanitizeObject<T>(obj: T): T {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'string') return sanitizeString(obj) as unknown as T;
+  if (typeof obj !== 'object') return obj;
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeObject(item)) as unknown as T;
+  }
+
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Also sanitize keys just in case
+    const safeKey = sanitizeString(key);
+    if (safeKey) {
+      result[safeKey] = sanitizeObject(value);
+    }
+  }
+  return result as T;
+}
+
+/**
  * Validate a chat message input
  */
 export function validateChatMessage(message: string): { valid: boolean; error?: string; sanitized: string } {

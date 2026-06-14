@@ -8,7 +8,6 @@ import { useGamificationStore } from '@/stores/gamification-store';
 import { MessageBubble } from '@/components/assistant/MessageBubble';
 import { ChatInput } from '@/components/assistant/ChatInput';
 import { Bot, AlertCircle } from 'lucide-react';
-import { generateId } from '@/lib/utils';
 
 export default function AssistantPage() {
   const { messages, isLoading, error, addMessage, setLoading, setError, getMessageCount } = useChatStore();
@@ -68,9 +67,10 @@ export default function AssistantPage() {
       // 4. Add AI response to UI
       addMessage('assistant', data.content);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Chat Error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      const error = err as Error;
+      setError(error.message || 'Something went wrong. Please try again.');
       // Add a fallback message so UI doesn't look stuck
       addMessage('assistant', "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.");
     } finally {

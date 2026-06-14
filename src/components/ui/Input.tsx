@@ -13,7 +13,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     { className = '', label, error, leftIcon, rightIcon, helperText, id, ...props },
     ref
   ) => {
-    const inputId = id || Math.random().toString(36).substring(7);
+    const defaultId = React.useId();
+    const inputId = id || defaultId;
 
     return (
       <div className="w-full flex flex-col gap-1.5">

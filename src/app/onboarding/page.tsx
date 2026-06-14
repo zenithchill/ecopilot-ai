@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/user-store';
 import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
 import { Input } from '@/components/ui/Input';
-import { Car, Bus, Train, Utensils, Zap, ShoppingBag } from 'lucide-react';
+import { Car, Bus, Zap } from 'lucide-react';
 import { calculateCarbonScore } from '@/lib/carbon-engine';
 
 export default function OnboardingPage() {
@@ -46,7 +46,7 @@ export default function OnboardingPage() {
       setStep(step + 1);
     } else {
       // Finalize
-      updateLifestyle(lifestyle as any);
+      updateLifestyle(lifestyle as Partial<import('@/types').LifestyleProfile>);
       completeOnboarding();
       router.push('/dashboard');
     }
@@ -204,7 +204,7 @@ export default function OnboardingPage() {
                         <button
                           key={mode.id}
                           onClick={() => {
-                            const updates: any = { dietType: mode.id };
+                            const updates: Partial<typeof lifestyle> = { dietType: mode.id };
                             if (mode.id === 'vegetarian' || mode.id === 'vegan') updates.meatMealsPerWeek = 0;
                             setLifestyle(s => ({ ...s, ...updates }));
                           }}
