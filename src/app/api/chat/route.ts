@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getGeminiModel, buildSystemPrompt } from '@/lib/gemini';
 import { chatRateLimiter, sanitizeString, sanitizeObject } from '@/lib/validators';
-import { calculateCarbonScore } from '@/lib/carbon-engine';
 
+// Remove the permissive wildcard CORS origin
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  // Next.js handles CORS origin automatically via next.config.js headers
 };
 
 export async function OPTIONS() {
@@ -18,55 +18,60 @@ export async function POST(req: Request) {
     // 1. Rate Limiting
     if (!chatRateLimiter.canMakeRequest()) {
       return NextResponse.json(
-        { error: 'Rate limit exceeded. Please try again in a minute.' },
-        { status: 429 }
+        { error: 'Rate limit exceeded. Please try again later.' },
+        { status: 429, headers: corsHeaders }
       );
     }
 
     // 2. Check API Key
     if (!process.env.GOOGLE_GEMINI_API_KEY) {
+      // Do not expose internal configuration state in production responses
       return NextResponse.json(
-        { error: 'API key not configured. Please add GOOGLE_GEMINI_API_KEY to your environment variables.' },
-        { status: 500 }
+        { error: 'Service temporarily unavailable.' },
+        { status: 503, headers: corsHeaders }
       );
     }
 
-    // 3. Parse and Validate Request
-    
-    // Size check
+    // 3. Parse and Validate Request Size
     const contentLength = req.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 1024 * 1024) { // 1MB limit
+    if (contentLength && parseInt(contentLength) > 1024 * 512) { // Stricter 512KB limit
       return NextResponse.json({ error: 'Payload too large.' }, { status: 413, headers: corsHeaders });
     }
 
     const rawBody = await req.json();
-    const body = sanitizeObject(rawBody);
-    const { messages, profile, logs } = body;
+    
+    // Deep sanitize entire body to prevent NoSQL injection or prototype pollution
+    const body = sanitizeObject(rawBody) as Record<string, unknown>;
+    
+    // Strict typing and validation for expected body fields
+    const messages = Array.isArray(body.messages) ? body.messages : null;
+    const profile = typeof body.profile === 'object' && body.profile !== null ? body.profile : null;
+    const logs = Array.isArray(body.logs) ? body.logs : [];
 
-    if (!messages || !Array.isArray(messages)) {
+    if (!messages) {
       return NextResponse.json({ error: 'Invalid messages format.' }, { status: 400, headers: corsHeaders });
     }
 
     const latestMessage = messages[messages.length - 1];
-    if (!latestMessage || latestMessage.role !== 'user') {
-      return NextResponse.json({ error: 'Last message must be from the user.' }, { status: 400, headers: corsHeaders });
+    if (!latestMessage || typeof latestMessage !== 'object' || latestMessage.role !== 'user' || typeof latestMessage.content !== 'string') {
+      return NextResponse.json({ error: 'Invalid message structure.' }, { status: 400, headers: corsHeaders });
     }
 
     const sanitizedQuery = sanitizeString(latestMessage.content, 1000);
+    if (!sanitizedQuery) {
+      return NextResponse.json({ error: 'Message content is required.' }, { status: 400, headers: corsHeaders });
+    }
     
     // 4. Build Context
-    const score = profile ? calculateCarbonScore(logs || [], profile.lifestyle) : null;
-    const systemPrompt = profile ? buildSystemPrompt(profile, logs || [], score) : 'You are EcoPilot, a sustainability AI assistant.';
+    // We pass any type safely as the engine will perform runtime checks
+    const systemPrompt = buildSystemPrompt(profile as import('@/types').UserProfile | null, logs as import('@/types').DailyLog[], null);
 
     // 5. Format History for Gemini
-    // Gemini expects history in { role: 'user' | 'model', parts: [{ text: '...' }] } format
-    const history = messages.slice(0, -1).map((msg: import('@/types').ChatMessage) => ({
+    const history = messages.slice(0, -1).map((msg: Record<string, unknown>) => ({
       role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.content }],
+      parts: [{ text: String(msg.content) }],
     }));
 
-    // Inject system prompt into history as the very first message from user (Gemini workaround for system instructions)
-    // In newer Gemini SDKs, there's a systemInstruction field, but we'll use a safer backward compatible approach
     const model = getGeminiModel();
     
     const chat = model.startChat({
@@ -88,10 +93,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ content: responseText }, { headers: corsHeaders });
 
   } catch (error: unknown) {
+    // Log the actual error internally
     console.error('Gemini API Error:', error);
-    const err = error as Error;
+    
+    // Never leak the error details to the client
     return NextResponse.json(
-      { error: 'An error occurred while communicating with the AI. Please try again.', details: err.message || 'Unknown error' },
+      { error: 'An error occurred while communicating with the AI. Please try again.' },
       { status: 500, headers: corsHeaders }
     );
   }

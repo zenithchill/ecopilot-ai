@@ -16,7 +16,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
   const formatText = (text: string) => {
     return text.split('\n').map((line, i) => {
       // Bold text handling
-      let formattedLine = line;
+      const formattedLine = line;
       if (formattedLine.includes('**')) {
         const parts = formattedLine.split('**');
         return (

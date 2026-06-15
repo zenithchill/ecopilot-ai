@@ -19,7 +19,6 @@ export const WeeklyTrend: React.FC<WeeklyTrendProps> = ({ logs }) => {
     };
   });
 
-  const maxTotal = Math.max(...trendData.map(d => d.total));
   const avgTotal = trendData.reduce((s, d) => s + d.total, 0) / 7;
 
   return (

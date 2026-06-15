@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Progress } from '@/components/ui/Progress';
 import { Input } from '@/components/ui/Input';
 import { Car, Bus, Zap } from 'lucide-react';
-import { calculateCarbonScore } from '@/lib/carbon-engine';
+
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -56,13 +56,6 @@ export default function OnboardingPage() {
     if (step > 0) setStep(step - 1);
   };
 
-  const steps = [
-    { title: 'Welcome', icon: '👋' },
-    { title: 'Transport', icon: '🚗' },
-    { title: 'Diet', icon: '🥗' },
-    { title: 'Energy', icon: '⚡' },
-    { title: 'Lifestyle', icon: '🌍' },
-  ];
 
   return (
     <div className="min-h-screen bg-surface-50 dark:bg-surface-950 flex flex-col relative overflow-hidden">

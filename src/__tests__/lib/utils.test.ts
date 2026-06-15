@@ -292,7 +292,7 @@ describe('groupByCategory', () => {
       { category: 'b', value: 2 },
       { category: 'a', value: 3 },
     ];
-    const grouped = groupByCategory(items as any);
+    const grouped = groupByCategory(items);
     expect(grouped['a']).toHaveLength(2);
     expect(grouped['b']).toHaveLength(1);
   });

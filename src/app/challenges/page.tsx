@@ -2,14 +2,12 @@
 
 import React from 'react';
 import { useGamificationStore } from '@/stores/gamification-store';
-import { useActivityStore } from '@/stores/activity-store';
 import { Progress } from '@/components/ui/Progress';
 import { Trophy, CheckCircle, Lock, Target } from 'lucide-react';
 import type { Challenge, Badge } from '@/types';
 
 export default function ChallengesPage() {
-  const { state: { activeChallenges, badges, levelTitle, ecoPoints, level }, earnBadge, updateChallengeProgress } = useGamificationStore();
-  const { logs } = useActivityStore();
+  const { state: { activeChallenges, badges, levelTitle, ecoPoints }, updateChallengeProgress } = useGamificationStore();
 
   // Sort badges: earned first, then by rarity
   const sortedBadges = [...badges].sort((a, b) => {

@@ -109,7 +109,7 @@ describe('calculateActivityCarbon', () => {
   });
 
   it('returns 0 for unknown category', () => {
-    expect(calculateActivityCarbon('unknown' as any, 'test', 10)).toBe(0);
+    expect(calculateActivityCarbon('unknown' as import('@/types').ActivityCategory, 'test', 10)).toBe(0);
   });
 
   it('returns 0 for unknown type within valid category', () => {

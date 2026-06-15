@@ -11,7 +11,7 @@ import { useActivityStore } from '@/stores/activity-store';
 import { calculateCarbonScore } from '@/lib/carbon-engine';
 import { generateInsights } from '@/lib/insights-engine';
 import { getGreeting } from '@/lib/utils';
-import { ArrowRight, Download } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 

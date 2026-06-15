@@ -1,12 +1,10 @@
+import 'server-only';
+
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { UserProfile, DailyLog, CarbonScore } from '@/types';
-import { calculateCarbonScore } from './carbon-engine';
 
-// Initialize the Gemini API client
-// Ensure this is only executed on the server side
-if (typeof window !== 'undefined') {
-  console.warn('CRITICAL SECURITY WARNING: Gemini API initialized on the client side. This exposes your API key.');
-}
+// The 'server-only' import ensures this module can never be bundled in the client code.
+// This is a robust Next.js security pattern to protect API keys.
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || '');
 
@@ -18,7 +16,7 @@ export const getGeminiModel = () => {
  * Build the system prompt using user context for highly personalized responses.
  */
 export function buildSystemPrompt(
-  profile: UserProfile,
+  profile: UserProfile | null,
   logs: DailyLog[],
   score: CarbonScore | null
 ): string {
@@ -29,10 +27,10 @@ You are EcoPilot, an expert AI sustainability coach. You combine environmental s
 You are encouraging, specific, data-driven, and concise.
 
 USER CONTEXT:
-Name: ${profile.name}
-Transport: ${profile.lifestyle.primaryTransport} (${profile.lifestyle.dailyCommuteKm}km commute)
-Diet: ${profile.lifestyle.dietType} (${profile.lifestyle.meatMealsPerWeek} meat meals/wk)
-Energy: ${profile.lifestyle.homeType}, ${profile.lifestyle.electricityKwhPerMonth} kWh/mo
+Name: ${profile?.name || 'User'}
+Transport: ${profile?.lifestyle.primaryTransport || 'Unknown'} (${profile?.lifestyle.dailyCommuteKm || 0}km commute)
+Diet: ${profile?.lifestyle.dietType || 'Unknown'} (${profile?.lifestyle.meatMealsPerWeek || 0} meat meals/wk)
+Energy: ${profile?.lifestyle.homeType || 'Unknown'}, ${profile?.lifestyle.electricityKwhPerMonth || 0} kWh/mo
 Current Carbon Score: ${score?.score || 'N/A'} (Grade ${score?.grade || 'N/A'})
 ${latestLog ? `Latest Activity (Today): ${latestLog.activities.length} logs, Total: ${latestLog.totalCarbonKg} kg CO2` : 'No recent logs yet.'}
 

@@ -41,8 +41,8 @@ describe('sanitizeString', () => {
   });
 
   it('returns empty for non-string', () => {
-    expect(sanitizeString(123 as any)).toBe('');
-    expect(sanitizeString(null as any)).toBe('');
+    expect(sanitizeString(123 as unknown as string)).toBe('');
+    expect(sanitizeString(null as unknown as string)).toBe('');
   });
 });
 
@@ -149,7 +149,7 @@ describe('validateName', () => {
 describe('validateEmail', () => {
   it('accepts empty email (since it is optional)', () => {
     expect(validateEmail('').valid).toBe(true);
-    expect(validateEmail(undefined as any).valid).toBe(true);
+    expect(validateEmail(undefined as unknown as string).valid).toBe(true);
   });
 
   it('rejects invalid emails', () => {

@@ -18,7 +18,7 @@ import {
 describe('Emission Factors Integrity', () => {
   const checkFactors = (factors: Record<string, number>, name: string) => {
     it(`all ${name} factors are non-negative numbers`, () => {
-      Object.entries(factors).forEach(([key, value]) => {
+      Object.entries(factors).forEach(([_key, value]) => {
         expect(typeof value).toBe('number');
         expect(value).toBeGreaterThanOrEqual(0);
       });

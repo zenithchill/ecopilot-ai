@@ -34,11 +34,11 @@ export default function LandingPage() {
           </div>
           <span className="font-display font-bold text-2xl tracking-tight">EcoPilot<span className="text-eco-500">.</span></span>
         </div>
-        <div className="hidden sm:flex items-center gap-4">
-          <Link href="/dashboard" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
+        <div className="hidden sm:flex items-center gap-4" role="navigation" aria-label="Main navigation">
+          <Link href="/dashboard" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" aria-label="Login to your dashboard">
             Login
           </Link>
-          <Link href="/onboarding">
+          <Link href="/onboarding" aria-label="Start onboarding process">
             <Button variant="primary" size="sm">Get Started</Button>
           </Link>
         </div>
@@ -69,12 +69,12 @@ export default function LandingPage() {
           </motion.p>
           
           <motion.div variants={itemVars} className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link href="/onboarding" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto text-lg px-8 h-14" rightIcon={<ArrowRight className="w-5 h-5" />}>
+            <Link href="/onboarding" className="w-full sm:w-auto" aria-label="Start your sustainability journey">
+              <Button size="lg" className="w-full sm:w-auto text-lg px-8 h-14" rightIcon={<ArrowRight className="w-5 h-5" aria-hidden="true" />}>
                 Start Your Journey
               </Button>
             </Link>
-            <Link href="#features" className="w-full sm:w-auto">
+            <Link href="#features" className="w-full sm:w-auto" aria-label="Explore features">
               <Button variant="secondary" size="lg" className="w-full sm:w-auto text-lg px-8 h-14">
                 Explore Features
               </Button>
@@ -138,15 +138,15 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
   return (
-    <div className="p-6 rounded-2xl bg-surface-50 dark:bg-surface-800/50 border border-slate-100 dark:border-slate-800 hover:border-eco-500/30 transition-colors duration-300">
-      <div className="w-12 h-12 rounded-xl bg-white dark:bg-surface-900 flex items-center justify-center mb-4 shadow-sm">
+    <article className="p-6 rounded-2xl bg-surface-50 dark:bg-surface-800/50 border border-slate-100 dark:border-slate-800 hover:border-eco-500/30 transition-colors duration-300">
+      <div className="w-12 h-12 rounded-xl bg-white dark:bg-surface-900 flex items-center justify-center mb-4 shadow-sm" aria-hidden="true">
         {icon}
       </div>
       <h3 className="text-xl font-semibold mb-2 text-slate-900 dark:text-white">{title}</h3>
       <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
         {description}
       </p>
-    </div>
+    </article>
   );
 }
 
